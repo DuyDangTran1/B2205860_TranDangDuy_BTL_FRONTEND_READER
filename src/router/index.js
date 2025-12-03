@@ -105,6 +105,23 @@ router.beforeEach(async (to, from, next) => {
       else return next("/informationUser");
     }
 
+    //Nếu là accestoken Nhân viên vào thì đẩy về login
+    if (accessToken && to.path !== "/login") {
+      const check_reader = await fetch("http://localhost:3000/api/isReader", {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+        },
+        credentials: "include",
+      });
+      if (accessToken && to.path != "/login") {
+        if (check_reader.status != 200) {
+          sessionStorage.removeItem("accessToken");
+          return next("/login");
+        }
+      }
+    }
+
     // Nếu chưa có thông tin, redirect /informationUser
     if (!isInfor && accessToken && to.path !== "/informationUser") {
       return next("/informationUser");
