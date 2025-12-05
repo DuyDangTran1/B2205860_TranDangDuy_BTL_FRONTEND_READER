@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import Footer from "@/components/Footer.vue";
 import { refreshToken } from "@/api/Token";
 import Navbar from "@/components/Navbar.vue";
+
 const route = useRoute();
 const detailBook = ref({});
 const id = route.params.id;
@@ -33,13 +34,26 @@ async function confirmBorrow() {
       const toastEl = document.getElementById("successToast");
       const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
       toast.show();
+    } else {
+      const toastBody = document.getElementById("errorToastBody");
+      toastBody.textContent = result.message || "Đã có lỗi xảy ra!";
+      const toastEl = document.getElementById("errorToast");
+      const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+      toast.show();
     }
+
+    await loadBook();
   } catch (error) {
     console.error(error);
+    const toastBody = document.getElementById("errorToastBody");
+    toastBody.textContent = "Không thể kết nối server!";
+    const toastEl = document.getElementById("errorToast");
+    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+    toast.show();
   }
 }
 
-onMounted(async function loadBook() {
+async function loadBook() {
   try {
     const accessToken = sessionStorage.getItem("accessToken");
     const res = await fetch(`http://localhost:3000/api/getBookId/${id}`, {
@@ -67,7 +81,9 @@ onMounted(async function loadBook() {
   } catch (error) {
     console.error(error);
   }
-});
+}
+
+onMounted(loadBook);
 </script>
 
 <template>
@@ -180,7 +196,7 @@ onMounted(async function loadBook() {
     </div>
   </div>
 
-  <!--Toast-->
+  <!--Toast thành công-->
   <div
     class="toast-container position-fixed bottom-0 end-0 p-3"
     style="z-index: 9999"
@@ -194,6 +210,30 @@ onMounted(async function loadBook() {
     >
       <div class="d-flex bg-primary">
         <div class="toast-body">Mượn sách thành công!</div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          data-bs-dismiss="toast"
+          aria-label="Close"
+        ></button>
+      </div>
+    </div>
+  </div>
+
+  <!--Toast lỗi-->
+  <div
+    class="toast-container position-fixed bottom-0 end-0 p-3"
+    style="z-index: 9999"
+  >
+    <div
+      id="errorToast"
+      class="toast align-items-center text-bg-danger border-0"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+    >
+      <div class="d-flex bg-danger">
+        <div class="toast-body" id="errorToastBody">Lỗi!</div>
         <button
           type="button"
           class="btn-close btn-close-white me-2 m-auto"

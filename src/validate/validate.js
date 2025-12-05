@@ -17,7 +17,8 @@ const validateEmail = async (email) => {
 
     const result = await res.json();
 
-    if (result.result_find === "Email đã tồn tại") return "Email đã tồn tại";
+    if (result.result_find === "Email đã tồn tạiEmail đã tồn tại")
+      return "Email đã tồn tại";
 
     return "";
   } catch (error) {

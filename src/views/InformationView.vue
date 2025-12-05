@@ -13,6 +13,7 @@ const form = ref({
   PHAI: "",
   DIACHI: "",
   DIENTHOAI: "",
+  DIEUKHOAN: false, // checkbox điều khoản
 });
 
 const error = ref({
@@ -21,6 +22,7 @@ const error = ref({
   PHAI: "",
   DIACHI: "",
   DIENTHOAI: "",
+  DIEUKHOAN: "",
 });
 
 let accessToken = sessionStorage.getItem("accessToken");
@@ -31,6 +33,11 @@ const validateData = async () => {
   error.value.PHAI = validate.validateSex(form.value.PHAI);
   error.value.DIACHI = validate.validateAddress(form.value.DIACHI);
   error.value.DIENTHOAI = await validate.validatePhone(form.value.DIENTHOAI);
+
+  // Kiểm tra điều khoản
+  error.value.DIEUKHOAN = form.value.DIEUKHOAN
+    ? ""
+    : "Bạn phải chấp nhận điều khoản";
 };
 
 const updateData = async () => {
@@ -41,7 +48,8 @@ const updateData = async () => {
     !error.value.NGAYSINH &&
     !error.value.PHAI &&
     !error.value.DIACHI &&
-    !error.value.DIENTHOAI
+    !error.value.DIENTHOAI &&
+    !error.value.DIEUKHOAN
   ) {
     let res = await fetch("http://localhost:3000/api/updateInformation", {
       method: "POST",
@@ -91,8 +99,9 @@ async function load_information() {
     return load_information();
   }
 
-  form.value.HOLOT = result.information.HOLOT ? result.information.HOLOT : " ";
-  form.value.TEN = result.information.TEN ? result.information.TEN : " ";
+  form.value.HOLOT = result.information.HOLOT || " ";
+  form.value.TEN = result.information.TEN || " ";
+  form.value.DIEUKHOAN = result.information.DIEUKHOAN || false; // load trạng thái nếu đã tick
 }
 
 onMounted(load_information);
@@ -220,6 +229,31 @@ onMounted(load_information);
           </div>
         </div>
 
+        <div class="mb-3">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="dieuKhoan"
+              v-model="form.DIEUKHOAN"
+            />
+            <label class="form-check-label" for="dieuKhoan">
+              Tôi đồng ý với các điều khoản:
+              <ul class="mb-0">
+                <li>Mượn sách tối đa 7 ngày</li>
+                <li>Trả trễ phạt 100k</li>
+                <li>
+                  Nếu vi phạm quá nhiều lần trả trễ hoặc không lấy sách sau khi
+                  duyệt, tài khoản sẽ bị khóa
+                </li>
+              </ul>
+            </label>
+          </div>
+          <div v-if="error.DIEUKHOAN" class="invalid-feedback d-block mt-1">
+            {{ error.DIEUKHOAN }}
+          </div>
+        </div>
+
         <div class="d-grid mt-4">
           <button
             class="btn btn-dark rounded-pill py-2 fw-semibold"
@@ -270,6 +304,18 @@ button {
 button:hover {
   transform: translateY(-1px);
   box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+}
+
+.info-page {
+  background-color: #f9fafb;
+}
+.info-card {
+  animation: fadeIn 0.6s ease;
+}
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.875rem;
+  animation: fadeIn 0.3s ease;
 }
 
 @keyframes fadeIn {

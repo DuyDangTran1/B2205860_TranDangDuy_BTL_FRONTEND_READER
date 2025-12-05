@@ -288,7 +288,7 @@ watch(
 
 .card-favorite {
   flex: 0 0 0;
-  flex-basis: 16.7rem !important;
+  flex-basis: 15rem !important;
   height: 400px;
 }
 

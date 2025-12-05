@@ -88,7 +88,7 @@ onMounted(() => {
       theme: "outline",
       size: "large",
       type: "standard",
-      width: "200%",
+      width: "320",
     }
   );
 });
@@ -99,7 +99,7 @@ onMounted(() => {
     class="container-fluid d-flex justify-content-center align-items-center vh-100 bg-light bg-gradient"
   >
     <div
-      class="row col-lg-4 col-sm-10 col-md-8 bg-secondary bg-gradient border border-1 border-dark rounded-3 p-4"
+      class="row col-lg-4 col-sm-10 col-md-8 form bg-gradient border border-1 border-dark rounded-3 p-4"
     >
       <div class="col-lg-9 mx-auto">
         <h2 class="text-center text-white mb-4">Login</h2>
@@ -120,7 +120,7 @@ onMounted(() => {
         </div>
 
         <!-- Password -->
-        <div class="mb-3">
+        <div>
           <label for="inputPassword" class="form-label text-white"
             >Password:</label
           >
@@ -136,6 +136,10 @@ onMounted(() => {
           </div>
         </div>
 
+        <router-link to="/register" class="text-end">
+          <p>Bạn đã có tài khoản?</p>
+        </router-link>
+
         <div v-if="loginError" class="text-danger py-2">
           {{ loginError }}
         </div>
@@ -144,7 +148,7 @@ onMounted(() => {
         <button @click="submitLogin" class="btn btn-primary w-100 mb-3 mt-2">
           Submit
         </button>
-
+        <hr />
         <!-- Google button -->
         <div
           class="google-default-btn mb-4 d-flex justify-content-center"
@@ -162,5 +166,8 @@ onMounted(() => {
 }
 .err {
   color: red;
+}
+.form {
+  background-color: #aac5ee;
 }
 </style>
