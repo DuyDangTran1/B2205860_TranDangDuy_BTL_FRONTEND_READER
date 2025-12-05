@@ -60,79 +60,68 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
+  const noAuth = ["/login", "/register"];
   let accessToken = sessionStorage.getItem("accessToken");
-  const arr_form = ["/login", "/register"];
 
   try {
-    // Nếu chưa có accessToken, thử refresh
+    // 1) Chưa có accessToken thử refresh
     if (!accessToken) {
-      try {
-        if (arr_form.includes(to.path)) {
-          return next();
-        }
-        const refreshRes = await fetch("http://localhost:3000/api/refresh", {
-          method: "GET",
-          credentials: "include",
-        });
-        const refreshData = await refreshRes.json();
+      if (noAuth.includes(to.path)) return next();
 
-        if (refreshData.message === "oke") {
-          accessToken = refreshData.accessToken;
-          sessionStorage.setItem("accessToken", accessToken);
-        } else {
-          if (!arr_form.includes(to.path)) return next("/login");
-        }
-      } catch (error) {
+      const refreshRes = await fetch("http://localhost:3000/api/refresh", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const data = await refreshRes.json();
+      if (data.message === "oke") {
+        accessToken = data.accessToken;
+        sessionStorage.setItem("accessToken", accessToken);
+      } else {
         return next("/login");
       }
     }
 
-    // Check isInfor
-    const infoRes = await fetch("http://localhost:3000/api/isInformation", {
+    //Nếu bị block thì về login
+    const blockRes = await fetch("http://localhost:3000/api/isblock", {
       method: "GET",
-      headers: {
-        Authorization: "Bearer " + accessToken,
-      },
+      headers: { Authorization: "Bearer " + accessToken },
       credentials: "include",
     });
+    const blockData = await blockRes.json();
+
+    if (blockData.block === true) {
+      sessionStorage.removeItem("accessToken");
+      return next("/login");
+    }
+
+    // 2) Lấy thông tin người dùng
+    const infoRes = await fetch("http://localhost:3000/api/isInformation", {
+      method: "GET",
+      headers: { Authorization: "Bearer " + accessToken },
+      credentials: "include",
+    });
+
     const infoData = await infoRes.json();
     const isInfor = infoData.isInfor === true;
-    // console.log(isInfor);
 
-    // Nếu đang ở login/register mà đã login + có thông tin, quay về Home
-    if (accessToken && arr_form.includes(to.path)) {
-      if (isInfor) return next("/");
-      else return next("/informationUser");
+    // 3) Nếu vào login/register mà đã login
+    if (noAuth.includes(to.path) && accessToken) {
+      return next(isInfor ? "/" : "/informationUser");
     }
 
-    //Nếu là accestoken Nhân viên vào thì đẩy về login
-    if (accessToken && to.path !== "/login") {
-      const check_reader = await fetch("http://localhost:3000/api/isReader", {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer " + accessToken,
-        },
-        credentials: "include",
-      });
-      if (accessToken && to.path != "/login") {
-        if (check_reader.status != 200) {
-          sessionStorage.removeItem("accessToken");
-          return next("/login");
-        }
-      }
-    }
-
-    // Nếu chưa có thông tin, redirect /informationUser
-    if (!isInfor && accessToken && to.path !== "/informationUser") {
+    // 4) Chưa có thông tin ép vào /informationUser
+    if (!isInfor && to.path !== "/informationUser") {
       return next("/informationUser");
     }
 
-    if (isInfor && accessToken && to.path == "/informationUser")
+    if (isInfor && to.path === "/informationUser") {
       return next("/");
+    }
 
-    // bình thường
-    next();
-  } catch (err) {
+    // OK
+    return next();
+  } catch (error) {
     return next("/login");
   }
 });

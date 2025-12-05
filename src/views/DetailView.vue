@@ -154,6 +154,10 @@ onMounted(async function loadBook() {
         </div>
         <div class="modal-body">
           Bạn có chắc chắn muốn mượn <b>{{ detailBook.TENSACH }}</b> không?
+          <p style="color: red">
+            (Lưu ý: sau khi sau 5 ngày kể từ khi nhân viên đã duyệt nếu không
+            lấy thì yêu cầu của bạn sẽ bị hủy)
+          </p>
         </div>
         <div class="modal-footer">
           <button

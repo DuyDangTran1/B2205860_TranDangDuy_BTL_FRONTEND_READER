@@ -3,7 +3,7 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-
+const loginError = ref("");
 // Dữ liệu login thường
 const data_login = ref({
   EMAIL: "",
@@ -16,7 +16,10 @@ const error = ref({
 });
 
 // Đăng nhập truyền thống
+// Đăng nhập truyền thống
 const submitLogin = async () => {
+  loginError.value = ""; // RESET LỖI MỖI LẦN BẤM
+
   error.value.EMAIL = !data_login.value.EMAIL
     ? "Không được bỏ trống email"
     : "";
@@ -33,18 +36,25 @@ const submitLogin = async () => {
     });
 
     const result = await res.json();
-    console.log(result);
 
-    if (result.message_account === "Đăng nhập thành công") {
+    // Thành công
+    if (res.ok && result.message_account === "Đăng nhập thành công") {
       sessionStorage.setItem("accessToken", result.accessToken);
-      router.push("/informationUser");
+      return router.push("/informationUser");
     }
+
+    // LỖI
+    loginError.value =
+      result.message_account ||
+      result.message ||
+      "Đăng nhập thất bại. Vui lòng thử lại!";
   }
 };
 
-// Hàm callback Google trả về
+// Google Login callback
 window.handleCredentialResponse = async function (response) {
-  // Gửi lên backend Node.js để verify
+  loginError.value = ""; // RESET
+
   const res = await fetch("http://localhost:3000/api/auth/google", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -53,12 +63,16 @@ window.handleCredentialResponse = async function (response) {
   });
 
   const data = await res.json();
-  console.log("Token backend trả về:", data.accessToken);
 
-  if (data.accessToken) {
+  if (res.ok && data.accessToken) {
     sessionStorage.setItem("accessToken", data.accessToken);
-    router.push("/informationUser");
+    return router.push("/informationUser");
   }
+
+  loginError.value =
+    data.message_account ||
+    data.message ||
+    "Đăng nhập thất bại. Vui lòng thử lại!";
 };
 
 onMounted(() => {
@@ -120,6 +134,10 @@ onMounted(() => {
           <div v-if="error.PASSWORD" class="text-danger mt-1">
             {{ error.PASSWORD }}
           </div>
+        </div>
+
+        <div v-if="loginError" class="text-danger py-2">
+          {{ loginError }}
         </div>
 
         <!-- Submit -->
